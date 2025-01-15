@@ -18,16 +18,29 @@ def save_data(data, output_file):
 
 
 
+import os
+import json
+import random
+from pathlib import Path
+from utils import load_data, save_data
+from graph_algo import extract_node_num
+
+
 def sample_tasks(task_file, sampled_file, num_samples, node_num_min, node_num_max):
     """
-    对某类任务进行采样，确保与之前的样本不重复，并且只采样节点数在 [node_num_min, node_num_max] 范围内的任务
-    如果已经采样会继续采样，并且保证不与之前的样本重复
+    对某类任务进行采样，确保与之前的样本不重复，并且只采样节点数在 [node_num_min, node_num_max] 范围内的任务。
+    如果已经采样过会继续采样，并且保证不与之前的样本重复。
+    如果剩余样本不足，继续执行并提醒实际采样的数量。
+    根据节点数范围添加 "complexity" 键值对：
+        - easy: [5, 35]
+        - middle: (35, 65]
+        - hard: (65, 100]
     :param task_file: 分类后的任务文件路径
     :param sampled_file: 已采样的样本文件路径
     :param num_samples: 需要采样的条数
     :param node_num_min: 节点数最小值（包含）
     :param node_num_max: 节点数最大值（包含）
-    :return: 采样结果（列表）
+    :return: 实际采样的任务列表
     """
     # 加载任务数据
     tasks = load_data(task_file)
@@ -51,22 +64,35 @@ def sample_tasks(task_file, sampled_file, num_samples, node_num_min, node_num_ma
     # 进一步筛选节点数在 [node_num_min, node_num_max] 范围内的任务
     filtered_tasks = [
         task for task in remaining_tasks
-        if node_num_min <= graph_algo.extract_node_num(task["query"]) <= node_num_max
+        if node_num_min <= extract_node_num(task["query"]) <= node_num_max
     ]
 
     # 检查剩余样本是否足够
     if len(filtered_tasks) < num_samples:
-        raise ValueError(
-            f"剩余样本不足，无法采样 {num_samples} 条。剩余样本数：{len(filtered_tasks)}，"
-            f"节点数范围：[{node_num_min}, {node_num_max}]"
+        print(
+            f"警告：剩余样本不足，无法采样 {num_samples} 条。"
+            f"剩余样本数：{len(filtered_tasks)}，节点数范围：[{node_num_min}, {node_num_max}]"
         )
+        num_samples = len(filtered_tasks)  # 调整采样数量为剩余样本数
 
     # 随机采样
     sampled = random.sample(filtered_tasks, num_samples)
 
-    # 为采样的任务添加主键
+    # 为采样的任务添加主键和 complexity 字段
     for i, task in enumerate(sampled, start=len(sampled_set) + 1):
         task["graph"] = f"graph{i}"  # 添加主键
+
+        # 根据节点数范围设置 complexity
+        node_num = extract_node_num(task["query"])
+        if 5 <= node_num <= 35:
+            task["complexity"] = "easy"
+        elif 35 < node_num <= 65:
+            task["complexity"] = "middle"
+        elif 65 < node_num <= 100:
+            task["complexity"] = "hard"
+        else:
+            task["complexity"] = "unknown"  # 默认值，防止意外情况
+
         sampled_set[task["graph"]] = task  # 更新已采样的样本记录
 
     # 保存已采样的样本记录
@@ -151,6 +177,10 @@ def extract_graph(sampled_file):
 
 
 def sample_dataset1():
+    """
+    采样 dataset1 中的任务
+    """
+
     # 示例调用
     task_path = "task-list"
     sample_path = "sampled-dataset1"
@@ -160,8 +190,10 @@ def sample_dataset1():
     for task_name in task_list:
         task_file = f"{task_path}\{task_name}.json"  # 分类后的任务文件
         sampled_file = f"{sample_path}\sampled_{task_name}.json"  # 已采样的样本文件
-        num_samples = 50  # 需要采样的条数
-        sample_tasks(task_file, sampled_file, num_samples, 30, 100)
+        num_samples = 100  # 需要采样的条数
+        sample_tasks(task_file, sampled_file, num_samples, 5, 35)
+        sample_tasks(task_file, sampled_file, num_samples, 36, 65)
+        sample_tasks(task_file, sampled_file, num_samples, 65, 100)
 
 
 def sample_dataset2():
@@ -179,4 +211,4 @@ def sample_dataset2():
     
 
 if __name__ == '__main__':
-    sample_dataset2()
+    sample_dataset1()

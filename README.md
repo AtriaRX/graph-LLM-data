@@ -7,23 +7,32 @@
 
 要求
 
-1. ==50== 个图
-   建立主键 `graph`
+只抽取 `connectivity`,`shortest`, `flow` 问题，因为这几个问题可修改
+
+1. - 根据结点数不同，分为不同难度，图的数量定为
+     `easy: [5,35]; middle: (35,65], hard: (65,100]` ,
+     即`easy: [5,36); middle: [36,66), hard: [66,101)` 
+   
+   - 建立主键 `graph`，和键 `complexity`
+   
 2. 为每个问题生成同类别问题 ==16== 个
+
 3. 每个问题使用自己的算法计算出正确答案，保证答案正确性
+
 4. 答案格式使用 `###` 作为前缀符
    eg：`### Yes` 或 `### No`
 
 > [example]
 >
-> 数据集的 json 格式：
+> 数据集的 `json` 格式：
 >
 > ```json
 > {
-> "query":{},
-> "answer":{},
-> "task":{},
-> "graph":{}
+>     "query":{},
+>     "answer":{},
+>     "task":{},		// connectivity, shortest, flow
+>     "graph":{},    // graph<num>
+>     "complexity":{}      // easy, middle, hard
 > }
 > ```
 >
@@ -51,14 +60,14 @@
 
 > [example]
 >
-> 数据集的 json 格式：
+> 数据集的 `json` 格式：
 >
 > ```json
 > {
 >  "query":{},
 >  "answer":{},
 >  "task":{},
->  "graph":{}
+>  "graph":{},
 >  "edges": [[u, v, w], ..., ...]
 > }
 > ```
@@ -92,7 +101,18 @@
 >
 > Determine whether or not there is a cycle in an undirected graph. In an undirected graph, (i,j) means that node i and node j are connected with an undirected edge. Given a graph, you need to output Yes or No, indicating whether there is a cycle in the graph. Q: The nodes are numbered from 0 to 9, and the edges are: (0, 9) (0, 6) (0, 1) (0, 5) (0, 7) (1, 9) (1, 7) (1, 4) (1, 2) (2, 7) (2, 3) (2, 8) (2, 5) (2, 9) (3, 6) (3, 9) (3, 8) (4, 8) (4, 6) (6, 8) (6, 9). Is there a cycle in this graph?
 
-### connect 问题
+
+
+answer：
+
+1. `### Yes`
+2. `### No`
+
+
+
+
+
+### connectivity 问题
 
 - [x] 
 
@@ -103,6 +123,15 @@
 > Determine whether two nodes are connected in an undirected graph. In an undirected graph, (i,j) means that node i and node j are connected with an undirected edge. Given a graph and a pair of nodes, you need to output Yes or No, indicating whether the node i and node j are connected. Q: The nodes are numbered from 0 to 19, and the edges are: (0, 11) (0, 16) (0, 7) (0, 5) (0, 12) (0, 15) (0, 17) (0, 19) (0, 4) (1, 2) (1, 13) (1, 12) (1, 15) (1, 5) (1, 19) (1, 18) (1, 10) (1, 8) (2, 8) (2, 6) (2, 4) (2, 15) (2, 11) (2, 5) (2, 10) (2, 7) (2, 12) (2, 13) (3, 10) (3, 18) (3, 16) (3, 12) (3, 19) (3, 14) (3, 5) (3, 17) (3, 11) (3, 4) (4, 12) (4, 10) (4, 8) (4, 17) (4, 11) (4, 13) (4, 5) (4, 7) (4, 19) (4, 6) (4, 16) (5, 16) (5, 7) (5, 12) (5, 15) (5, 10) (5, 13) (5, 11) (6, 12) (6, 10) (6, 18) (6, 16) (6, 9) (6, 14) (6, 19) (6, 13) (7, 12) (7, 14) (7, 16) (7, 15) (7, 8) (7, 13) (8, 13) (8, 18) (8, 11) (8, 14) (8, 19) (8, 15) (9, 18) (9, 10) (9, 13) (9, 17) (9, 15) (9, 11) (10, 19) (10, 14) (10, 15) (10, 13) (10, 12) (11, 14) (11, 18) (11, 12) (11, 17) (11, 13) (12, 19) (12, 15) (12, 16) (13, 15) (13, 14) (14, 15) (15, 18) (15, 17) (15, 19) (16, 18) (17, 19) (17, 18) (18, 19). Is there a path between node 6 and node 9?
 
 - 可修改问题
+
+
+
+answer：
+
+1. `### Yes`
+2. `### No`
+
+
 
 ### bipartite 问题
 
@@ -116,6 +145,11 @@
 
 
 
+answer：
+
+1. `### Yes`
+2. `### No`
+
 ### topology 问题
 
 - [x] 
@@ -128,9 +162,9 @@
 
 
 
-answer:
+answer  eg:
 
-\### [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16] 
+`### [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16] `
 
 
 
@@ -145,6 +179,13 @@ answer:
 
 - 可修改问题
 
+answer:
+
+1. `### <num>`
+2. `### There is no path between nodes`
+
+
+
 ### triangle 问题
 
 - [ ] 
@@ -155,6 +196,13 @@ answer:
 > Find the maximum sum of the weights of three interconnected nodes. In an undirected graph, [i, k] means that node i has the weight k. (i,j) means that node i and node j are connected with an undirected edge. Given a graph, you need to output the maximum sum of the weights of three interconnected nodes. Q: The nodes are numbered from 0 to 12, weights of nodes are: [0, 9] [1, 3] [2, 6] [3, 3] [4, 6] [5, 4] [6, 7] [7, 9] [8, 4] [9, 1] [10, 7] [11, 2] [12, 9], and the edges are: (0, 10) (0, 9) (2, 6) (7, 9) (9, 10). What is the maximum sum of the weights of three nodes?
 
 最后搞
+
+answer:
+
+1. `### <num>`
+2. `### No triples satisfy the condition`
+
+
 
 ### flow 问题
 
@@ -167,6 +215,11 @@ answer:
 
 - 可修改问题
 
+answer:
+
+1. `### <num>`，除了 ``###0`
+2. `### 0`，表示两点间不连通
+
 ### hamilton 问题
 
 - [x] 
@@ -178,7 +231,16 @@ answer:
 
 哈密顿图处理问题：只回答 `Yes/No`.
 
-原问题有些 Yes 生成后会带上哈密顿路径
+原数据集 answer 有的 Yes 生成后会带上哈密顿路径
+
+
+
+answer：
+
+1. `### Yes`
+2. `### No`
+
+
 
 ### subgraph 问题
 
@@ -189,3 +251,11 @@ answer:
 > [example]
 > Determine if a smaller graph is present as an exact match within a larger graph. In a directed graph, (i->j) means that node i and node j are connected with a directed edge from node i to node j. Given a graph G and a subgraph G', you need to output Yes or No, indicating whether subgraph G' is present within the directed graph G. Q: The nodes of graph G are numbered from 0 to 6, and the edges are: (0->2) (0->4) (1->3) (2->5) (3->4) (4->5). The nodes of subgraph G' are numbered from a to d, and the edges are: (a->b) (a->d) (a->c) (b->d) (b->c) (c->d). Is subgraph G' present within graph G as a direct substructure?
 
+
+
+
+
+answer：
+
+1. `### Yes`
+2. `### No`

@@ -1,3 +1,4 @@
+import os
 import utils
 import graph_algo
 import random
@@ -163,7 +164,7 @@ def generate_shortest_path_question(task, dataset_type, used_pairs=None):
     随机生成一个合法的最短路径问题，并替换 query 的最后一句
     优先使用连通的节点对，如果所有连通节点对都已使用，则允许使用不连通节点对
     对于无向图，(i,j) 和 (j,i) 被视为同一个节点对
-    :param query: 原始 query 字符串
+    :param task: 任务字典
     :param dataset_type: 数据集类型，1 为 dataset1，2 为 dataset2
     :param used_pairs: 已经使用过的节点对集合，默认为 None
     :return: 修改后的 query 字符串和更新后的 used_pairs 集合
@@ -354,17 +355,17 @@ def generate_hamiltonian_path_question(task):
 
 def generate_dataset1():
     """
-    抽取数据集任务 50 条
+    根据图结点数分类，尽量都抽取数据集任务 100 条，详见 sample_dataset1()
     生成 dataset1 的新任务 connectivity, flow, shortest
     """
     flag_sampled1 = True   # 是否已经采样过 dataset1
-    if flag_sampled1 == False:
+    if not flag_sampled1:
         utils.sample_dataset1()
+
     generate_size = 15  # 需要生成的新 query 数量
     sample_path = "sampled-dataset1"
     STR_sampled_ = "sampled_"
     task_list = ['connectivity', 'flow', 'shortest']
-    # task_list = ['flow']
     dataset_path = 'dataset1'
 
     for task_name in task_list:
@@ -375,24 +376,26 @@ def generate_dataset1():
         new_tasks = []
 
         for task in sampled_tasks:
-            # 生成 generate_size 个新 query
+            # 添加原始任务
             new_tasks.append(task)
+
             used_pairs = None
             for _ in range(generate_size):
                 # 复制原始任务，避免修改原始数据
                 new_task = task.copy()
 
-                # 替换 query
                 # 生成新的问题
-                if(task_name == 'connectivity'):
-                    new_question, used_pairs = generate_connectivity_question(new_task['query'], 1, used_pairs)
+                if task_name == 'connectivity':
+                    new_question, used_pairs = generate_connectivity_question(new_task, 1, used_pairs)
+                elif task_name == 'flow':
+                    new_question, used_pairs = generate_max_flow_question(new_task['query'], used_pairs)
+                elif task_name == 'shortest':
+                    new_question, used_pairs = generate_shortest_path_question(new_task, 1, used_pairs)
 
-                elif(task_name == 'flow'):
-                    new_question, used_pairs = generate_max_flow_question(new_task['query'], 1, used_pairs)
-                    
-                elif(task_name == 'shortest'):
-                    new_question, used_pairs = generate_shortest_path_question(new_task['query'], 1, used_pairs)
-                    
+                # 如果 new_question 为 None，跳过当前循环
+                if new_question is None:
+                    continue
+
                 # 替换 query
                 new_task["query"] = new_question
 
@@ -405,16 +408,14 @@ def generate_dataset1():
         print(f"已生成 {len(new_tasks)} 个新任务，保存到 {output_file}")
 
         # 为生成的任务计算正确答案
-        for task_name in task_list:
-            utils.get_answer(dataset_path,task_name=task_name)
-
+        utils.get_answer(dataset_path, task_name=task_name)
 def generate_dataset2():
     """
     抽取 flow 数据集 100 条，作为图
     生成其他 8 类任务数据集 dataset2 
     """
-    flag_sampled1 = True   # 是否已经采样过 dataset2
-    if flag_sampled1 == False:
+    flag_sampled2 = True   # 是否已经采样过 dataset2
+    if not flag_sampled2:
         utils.sample_dataset2()
 
     sample_path = "sampled-dataset2"
@@ -481,6 +482,39 @@ def generate_dataset2():
         if task_name == 'flow':
             continue
         utils.get_answer(dataset_path,task_name=task_name)
+
+    merge_json_files(dataset_path)
+
+def merge_json_files(dataset_path, output_file="dataset2.json"):
+    """
+    将指定目录下的所有 .json 文件合并到一个文件中
+    :param dataset_path: 包含 .json 文件的目录路径
+    :param output_file: 合并后的输出文件名
+    """
+    # 确保输出文件路径是绝对路径
+    output_file = os.path.join(dataset_path, output_file)
+
+    # 存储所有 JSON 数据
+    merged_data = []
+
+    # 遍历目录下的所有文件
+    for filename in os.listdir(dataset_path):
+        if filename.endswith(".json") and filename != os.path.basename(output_file):  # 排除输出文件本身
+            file_path = os.path.join(dataset_path, filename)
+            try:
+                data = utils.load_data(file_path)
+                merged_data.extend(data)
+                print(f"已加载文件: {filename}")
+            except Exception as e:
+                print(f"加载文件 {filename} 时出错: {e}")
+
+    # 将合并后的数据写入输出文件
+    try:
+        utils.save_data(merged_data, output_file)
+        print(f"合并完成，结果已保存到: {output_file}")
+    except Exception as e:
+        print(f"保存合并文件时出错: {e}")
+
 
 def test_cycle():
     """
@@ -554,8 +588,8 @@ def test_hamiltonian_path():
     print(new_query)
 
 if __name__ == "__main__":
-    # generate_dataset1()
-    generate_dataset2()
+    generate_dataset1()
+    # generate_dataset2()
     # test_cycle()
     # test_connectivity()
     # test_bipartite()
@@ -563,3 +597,4 @@ if __name__ == "__main__":
     # test_shortest_path()
     # test_hamiltonian_path()
     # test_max_flow()
+    # merge_json_files("dataset1")
