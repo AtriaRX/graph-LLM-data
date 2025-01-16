@@ -78,7 +78,7 @@ def sample_tasks(task_file, sampled_file, num_samples, node_num_min, node_num_ma
     # 随机采样
     sampled = random.sample(filtered_tasks, num_samples)
 
-    # 为采样的任务添加主键和 complexity 字段
+    # 为采样的任务添加主键和 complexity 字段  (这里可以优化下，有点慢)
     for i, task in enumerate(sampled, start=len(sampled_set) + 1):
         task["graph"] = f"graph{i}"  # 添加主键
 
@@ -211,4 +211,4 @@ def sample_dataset2():
     
 
 if __name__ == '__main__':
-    sample_dataset1()
+    sample_dataset2()

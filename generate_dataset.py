@@ -353,6 +353,52 @@ def generate_hamiltonian_path_question(task):
 
     return new_query
 
+def remove_random_edge(task, used_pairs=None):
+    """
+    从任务中随机去除一条边，并返回更新后的任务和已使用的边集合。
+
+    参数:
+        task (dict): 原始任务，包含 'edges' 字段。
+        used_pairs (set): 已使用的边集合，默认为 None。
+
+    返回:
+        new_task (dict): 更新后的任务，包含 'removed_edge' 字段。
+        used_pairs (set): 更新后的已使用边集合。
+    """
+    # 获取原图的边列表
+    original_edges = task['edges']
+    
+    # 如果 used_pairs 为 None，初始化一个空集合
+    if used_pairs is None:
+        used_pairs = set()
+    
+    # 随机选择一条未使用过的边
+    available_edges = [edge for edge in original_edges if tuple(edge) not in used_pairs]
+    
+    if not available_edges:
+        # 如果没有可用的边了，返回 None
+        return None, used_pairs
+    
+    # 随机选择一条边
+    removed_edge = random.choice(available_edges)
+    
+    # 将选中的边标记为已使用
+    used_pairs.add(tuple(removed_edge))
+    
+    # 创建新图的边列表（去除选中的边）
+    new_edges = [edge for edge in original_edges if edge != removed_edge]
+    
+    # 创建新任务的副本
+    new_task = task.copy()
+    
+    # 更新任务的边列表
+    new_task['edges'] = new_edges
+    
+    # 记录被删除的边
+    new_task['removed_edge'] = removed_edge
+    
+    return new_task, used_pairs
+
 def generate_dataset1():
     """
     根据图结点数分类，尽量都抽取数据集任务 100 条，详见 sample_dataset1()
@@ -409,10 +455,15 @@ def generate_dataset1():
 
         # 为生成的任务计算正确答案
         utils.get_answer(dataset_path, task_name=task_name)
+
+
 def generate_dataset2():
     """
     抽取 flow 数据集 100 条，作为图
-    生成其他 8 类任务数据集 dataset2 
+    为每个图生成其余 8 个不同类别问题各 1 个
+    每个问题扩充成 9 个问题:
+        - 不可修改问题随机删除一条边不重复，但仍认为是一个 graph（包括最初的图，共 9 个问题）
+        - 可修改问题直接同数据集一，生成不同问题
     """
     flag_sampled2 = True   # 是否已经采样过 dataset2
     if not flag_sampled2:
@@ -421,57 +472,65 @@ def generate_dataset2():
     sample_path = "sampled-dataset2"
     STR_sampled_ = "sampled_"
     task_list = ['cycle', 'connectivity','bipartite', 'topology', 'shortest', 'flow', 'hamilton']
-    # task_list = ['hamilton']
+    # task_list = ['shortest']
     dataset_path = 'dataset2'
+    generate_size = 9  # 需要生成的新 query 数量
 
     for task_name in task_list:
 
         sampled_file = f"{sample_path}/{STR_sampled_}flow.json"  # 已采样的样本文件
         sampled_tasks = utils.load_data(sampled_file)
 
-        if task_name == 'flow':
-            try:
-                output_file = f"{dataset_path}/generated_flow.json"
-                shutil.copy(sampled_file, output_file)
-                print(f"已复制文件 {sampled_file} 到 {output_file}")
-            except FileNotFoundError:
-                print(f"文件 {sampled_file} 未找到，无法复制。")
-            continue  # 跳过后续生成步骤，直接处理下一个任务
-
         # 用于存储新生成的任务
         new_tasks = []
 
         for task in sampled_tasks:
-            # 复制原始任务，避免修改原始数据
-            new_task = task.copy()
 
-            # 替换 query
-            # 生成新的问题
-            if(task_name == 'cycle'):
-                new_question = generate_cycle_question(new_task)
+            used_pairs = None
 
-            elif(task_name == 'connectivity'):
-                new_question, _ = generate_connectivity_question(new_task, 2)
-            
-            elif(task_name == 'bipartite'):
-                new_question = generate_bipartite_question(new_task)
-            
-            elif(task_name == 'topology'):
-                new_question = generate_topology_sort_question(new_task)
+            for i in range(generate_size):
+                # 复制原始任务，避免修改原始数据
+                new_task = task.copy()
 
-            elif(task_name == 'shortest'):
-                new_question, _ = generate_shortest_path_question(new_task, 2)
+                if task_name in ['cycle', 'bipartite', 'topology', 'hamilton']:
+                    if i == 0:
+                        # 第一次循环：保留原图，记录 removed_edge 为 None
+                        new_task["removed_edge"] = None
+                    else:
+                        # 后续循环：随机删除一条边
+                        new_task, used_pairs = remove_random_edge(task, used_pairs)
+                        if new_task is None:
+                            break  # 如果没有可用的边了，退出循环
+                    
 
-            elif(task_name == 'hamilton'):
-                new_question = generate_hamiltonian_path_question(new_task)
+                # 替换 query
+                # 生成新的问题
+                if(task_name == 'cycle'):
+                    new_question = generate_cycle_question(new_task)
+                elif(task_name == 'bipartite'):
+                    new_question = generate_bipartite_question(new_task)
+                elif(task_name == 'topology'):
+                    new_question = generate_topology_sort_question(new_task)
+                elif(task_name == 'hamilton'):
+                    new_question = generate_hamiltonian_path_question(new_task)
+                elif(task_name == 'shortest'):
+                    new_question, used_pairs = generate_shortest_path_question(new_task, 2, used_pairs)
+                elif(task_name == 'connectivity'):
+                    new_question, used_pairs = generate_connectivity_question(new_task, 2, used_pairs)
+                elif(task_name == 'flow'):
+                    new_question, used_pairs = generate_max_flow_question(new_task['query'], used_pairs)
                 
-            # 替换 query
-            new_task["query"] = new_question
-            new_task["task"] = task_name
+                # 如果 new_question 为 None，跳过当前循环
+                if new_question is None:
+                    continue
+                
+                # 替换 query
+                new_task["query"] = new_question
+                new_task["task"] = task_name
 
-            # 将新任务添加到列表中
-            new_tasks.append(new_task)
-
+                # 将新任务添加到列表中
+                new_tasks.append(new_task)
+                
         # 保存新生成的任务到文件
         output_file = f"{dataset_path}/generated_{task_name}.json"
         utils.save_data(new_tasks, output_file)
@@ -479,8 +538,6 @@ def generate_dataset2():
 
     # 为生成的任务计算正确答案
     for task_name in task_list:
-        if task_name == 'flow':
-            continue
         utils.get_answer(dataset_path,task_name=task_name)
 
     merge_json_files(dataset_path)
@@ -588,7 +645,7 @@ def test_hamiltonian_path():
     print(new_query)
 
 if __name__ == "__main__":
-    generate_dataset1()
+    # generate_dataset1()
     # generate_dataset2()
     # test_cycle()
     # test_connectivity()
@@ -597,4 +654,4 @@ if __name__ == "__main__":
     # test_shortest_path()
     # test_hamiltonian_path()
     # test_max_flow()
-    # merge_json_files("dataset1")
+    # merge_json_files("dataset2","dataset2.json")
