@@ -31,9 +31,12 @@
 > {
 >     "query":{},
 >     "answer":{},
->     "task":{},		// connectivity, shortest, flow
->     "graph":{},    // graph<num>
->     "complexity":{}      // easy, middle, hard
+>     "task":{},		
+>     "graph":{},  
+>     "complexity":{},
+>     "#task": "connectivity, shortest, flow",
+>     "#graph": "图主键 graph<num>",
+>     "#complexity": "easy, middle, hard"
 > }
 > ```
 >
@@ -73,9 +76,9 @@
 >     "task":{},
 >     "graph":{},
 >     "edges": [
->         [u, v, w],  # 表示从节点 u 到节点 v 的一条有向边，权重为 w
->         ...
->     ]
+>         [u, v, w],  
+>     ],
+>     "#edges": "[u, v, w] 表示从节点 u 到节点 v 的一条有向边，权重为 w"
 > }
 > ```
 > 如果是不可修改的问题会加入 `removed_edge` 字段
@@ -185,6 +188,7 @@ answer  eg:
 无向图
 
 > [example]
+> 
 > Find the shortest path between two nodes in an undirected graph. In an undirected graph, (i,j,k) means that node i and node j are connected with an undirected edge with weight k. Given a graph and a pair of nodes, you need to output the shortest path between the two nodes. Q: The nodes are numbered from 0 to 37, and the edges are: (0,16,4) (0,23,3) (0,32,10) (0,27,5) (0,12,2) (0,24,9) (0,36,7) (1,13,3) (1,5,1) (1,31,4) (1,28,1) (1,2,9) (1,22,5) (1,24,1) (1,7,10) (1,6,1) (2,25,4) (2,13,4) (2,34,2) (2,5,7) (2,18,10) (2,19,8) (2,27,1) (3,35,9) (3,13,2) (3,32,1) (3,28,6) (3,17,8) (3,37,3) (4,16,5) (4,35,4) (5,31,8) (5,34,4) (5,15,5) (5,10,2) (5,20,2) (5,26,2) (6,8,3) (6,32,7) (6,12,6) (6,9,5) (7,36,10) (7,23,8) (7,24,8) (7,16,1) (7,27,7) (7,8,7) (8,12,6) (8,33,7) (8,35,4) (8,31,7) (9,37,2) (9,27,10) (9,33,7) (10,23,10) (10,27,6) (10,20,10) (10,19,8) (10,21,7) (10,30,8) (10,26,8) (10,18,9) (10,37,1) (11,25,2) (11,34,10) (11,16,2) (11,26,3) (11,12,8) (11,27,9) (11,33,4) (12,36,6) (12,25,6) (12,24,6) (12,19,10) (12,35,4) (12,15,3) (13,37,1) (13,20,4) (14,30,8) (14,34,6) (14,29,4) (14,35,9) (14,26,3) (15,19,9) (15,28,4) (15,23,5) (15,37,4) (15,17,1) (15,18,2) (15,36,4) (16,17,4) (17,33,9) (17,22,7) (18,34,5) (18,25,9) (19,30,2) (19,31,6) (19,20,4) (20,34,8) (20,37,1) (20,29,9) (20,30,4) (20,21,5) (21,26,1) (21,34,7) (21,36,8) (21,28,10) (21,35,10) (21,33,9) (22,29,10) (22,33,2) (22,35,1) (23,35,1) (23,26,2) (24,35,6) (24,31,4) (24,36,5) (25,36,4) (26,31,7) (26,32,1) (26,33,8) (26,35,1) (27,34,10) (27,30,5) (28,37,5) (28,30,8) (28,31,5) (28,29,5) (29,33,10) (29,31,3) (30,34,6) (31,37,10) (31,33,2) (32,36,1) (34,37,10). Give the weight of the shortest path from node 7 to node 33.
 
 - 可修改问题
@@ -203,6 +207,7 @@ answer:
 无向图
 
 > [example]
+> 
 > Find the maximum sum of the weights of three interconnected nodes. In an undirected graph, [i, k] means that node i has the weight k. (i,j) means that node i and node j are connected with an undirected edge. Given a graph, you need to output the maximum sum of the weights of three interconnected nodes. Q: The nodes are numbered from 0 to 12, weights of nodes are: [0, 9] [1, 3] [2, 6] [3, 3] [4, 6] [5, 4] [6, 7] [7, 9] [8, 4] [9, 1] [10, 7] [11, 2] [12, 9], and the edges are: (0, 10) (0, 9) (2, 6) (7, 9) (9, 10). What is the maximum sum of the weights of three nodes?
 
 最后搞
@@ -221,6 +226,7 @@ answer:
 有向图
 
 > [example]
+> 
 > Find the maximum flow between two nodes in a directed graph. In a directed graph, (i->j,k) means that node i and node j are connected with an directed edge from node i to node j with weight k. Given a graph and a pair of nodes, you need to output the maximum flow between the two nodes. Q: The nodes are numbered from 0 to 7, and the edges are: (0->7,8) (0->4,1) (0->2,9) (0->6,1) (1->7,8) (1->3,10) (1->6,5) (1->5,1) (4->5,2) (5->6,6) (6->7,2). What is the maximum flow from node 4 to node 7?
 
 - 可修改问题
@@ -237,6 +243,7 @@ answer:
 无向图
 
 > [example]
+> 
 > Determine whether or not there is a Hamiltonian path in an undirected graph. In an undirected graph, (i,j) means that node i and node j are connected with an undirected edge. Given a graph, you need to output Yes or No, indicating whether there is a Hamiltonian path in the graph. Q: The nodes are numbered from 0 to 1, and the edges are: (0, 1). Is there a Hamiltonian path in this graph?
 
 哈密顿图处理问题：只回答 `Yes/No`.
@@ -259,6 +266,7 @@ answer：
 有向图
 
 > [example]
+> 
 > Determine if a smaller graph is present as an exact match within a larger graph. In a directed graph, (i->j) means that node i and node j are connected with a directed edge from node i to node j. Given a graph G and a subgraph G', you need to output Yes or No, indicating whether subgraph G' is present within the directed graph G. Q: The nodes of graph G are numbered from 0 to 6, and the edges are: (0->2) (0->4) (1->3) (2->5) (3->4) (4->5). The nodes of subgraph G' are numbered from a to d, and the edges are: (a->b) (a->d) (a->c) (b->d) (b->c) (c->d). Is subgraph G' present within graph G as a direct substructure?
 
 
